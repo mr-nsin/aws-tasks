@@ -1,0 +1,33 @@
+<html>
+    <head>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        
+    </head>
+    <body>
+        <p>Hello</p>
+        <form>
+            <label for="fname">User Name:</label><br>
+            <input type="text" id="gfname" name="fname"><br><br>
+            <button id="getData">Get Data</button>
+        </form>
+        <script type="text/javascript">
+
+            $("#getData").click(function(e){
+                e.preventDefault();
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    url: "https://0f0rbh2x70.execute-api.ap-south-1.amazonaws.com/PROD/sendtodynamodb",
+                    success: function(data){
+                        console.log("Success", data);
+                    },
+                    error: function(data){
+                        console.log("Error", data);
+                    },
+                    async: true,
+                    crossDomain: true
+                });
+            });
+        </script>
+    </body>
+</html>
