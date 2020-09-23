@@ -1,4 +1,6 @@
+import json
 import boto3
+
 from botocore.exceptions import ClientError
 
 # Replace sender@example.com with your "From" address.
@@ -45,40 +47,54 @@ CHARSET = "UTF-8"
 # Create a new SES resource and specify a region.
 client = boto3.client('ses',region_name=AWS_REGION)
 
-# Try to send the email.
-try:
-    #Provide the contents of the email.
-    response = client.send_email(
-        Destination={
-            'ToAddresses': [
-                RECIPIENT,
-            ],
-        },
-        Message={
-            'Body': {
-                'Html': {
-                    'Charset': CHARSET,
-                    'Data': BODY_HTML,
+
+def lambda_handler(event, context):
+    # Try to send the email.
+    try:
+        #Provide the contents of the email.
+        response = client.send_email(
+            Destination={
+                'ToAddresses': [
+                    RECIPIENT,
+                ],
+            },
+            Message={
+                'Body': {
+                    'Html': {
+                        'Charset': CHARSET,
+                        'Data': BODY_HTML,
+                    },
+                    'Text': {
+                        'Charset': CHARSET,
+                        'Data': BODY_TEXT,
+                    },
                 },
-                'Text': {
+                'Subject': {
                     'Charset': CHARSET,
-                    'Data': BODY_TEXT,
+                    'Data': SUBJECT,
                 },
             },
-            'Subject': {
-                'Charset': CHARSET,
-                'Data': SUBJECT,
+            Source=SENDER,
+            # If you are not using a configuration set, comment or delete the
+            # following line
+            ConfigurationSetName=CONFIGURATION_SET,
+        )
+    # Display an error if something goes wrong.	
+    except ClientError as e:
+        return {
+            'statusCode' : 200,
+            'headers': {
+                'Access-Control-Allow-Origin' : '*', 
+                'Access-Control-Allow-Credentials' : True
             },
-        },
-        Source=SENDER,
-        # If you are not using a configuration set, comment or delete the
-        # following line
-        ConfigurationSetName=CONFIGURATION_SET,
-    )
-# Display an error if something goes wrong.	
-except ClientError as e:
-    print(e.response['Error']['Message'])
-    print(e.response)
-else:
-    print("Email sent! Message ID:"),
-    print(response['MessageId'])
+            'body' : json.dumps(e.response['Error']['Message'])
+        }
+    else:
+        return {
+            'statusCode' : 200,
+            'headers': {
+                'Access-Control-Allow-Origin' : '*', 
+                'Access-Control-Allow-Credentials' : True
+            },
+            'body' : json.dumps(response['MessageId'])
+        }
